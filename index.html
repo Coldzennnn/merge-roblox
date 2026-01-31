@@ -711,20 +711,49 @@
             }
         }
     }
-
+ 
     function updateUIButtons(w, h) {
         const minDim = Math.min(w, h);
-        let r = Math.max(35, minDim * 0.06); if (r > 50) r = 50;
-        const setX = 50; const setY = 50;
         
-        const settingsBtn = { id:'settings', x: setX, y: setY, r: r * 0.8, color:'#777', visible: true };
-        const muteBtn = { id:'mute', x: setX, y: setY + r * 2.2, r: r * 0.7, color:'#444', visible: gameState.settingsOpen };
-        const langBtn = { id:'lang', x: setX, y: setY + r * 4.4, r: r * 0.7, color:'#4488FF', visible: gameState.settingsOpen };
-        const resetBtn = { id:'reset', x: setX, y: setY + r * 6.6, r: r * 0.7, color:'#FF3333', visible: gameState.settingsOpen };
+        // ОПРЕДЕЛЯЕМ МОБИЛЬНЫЙ ЛАНДШАФТ (горизонтально)
+        // Если ширина больше высоты и высота меньше 600px — это скорее всего телефон боком
+        const isMobileLandscape = w > h && h < 600;
 
-        const actionX = w - 70; const centerY = h / 2;
-        const adBtn = { id:'ad', x: actionX, y: centerY - 60, r: r, color:'#FFD700', visible: true };
-        const buyBtn = { id:'buy', x: actionX, y: centerY + 60, r: r * 1.1, color:'#4CAF50', visible: true };
+        // 1. НАСТРОЙКА РАЗМЕРА (Радиус)
+        // Для мобилок делаем кнопки компактнее (0.05 вместо 0.06 и мин. 28 вместо 35)
+        let r = isMobileLandscape ? Math.max(28, minDim * 0.05) : Math.max(35, minDim * 0.06);
+        if (r > 50) r = 50; // Ограничение макс размера
+
+        // 2. НАСТРОЙКА ПОЗИЦИИ (Верхний левый угол)
+        // На мобилках прижимаем ближе к углу (35px вместо 50px)
+        const setX = isMobileLandscape ? 35 : 50; 
+        const setY = isMobileLandscape ? 35 : 50;
+        
+        // 3. НАСТРОЙКА ОТСТУПОВ (Плотность списка)
+        // Если мобилка — множитель отступа 1.8, иначе 2.2 (как было)
+        const gapMult = isMobileLandscape ? 1.8 : 2.2;
+
+        // ЛЕВАЯ КОЛОНКА (НАСТРОЙКИ)
+        const settingsBtn = { id:'settings', x: setX, y: setY, r: r * 0.8, color:'#777', visible: true };
+        
+        // Кнопки выстраиваем относительно setY с новым множителем gapMult
+        // Mute: 1 шаг
+        const muteBtn = { id:'mute', x: setX, y: setY + r * gapMult, r: r * 0.7, color:'#444', visible: gameState.settingsOpen };
+        // Lang: 2 шага
+        const langBtn = { id:'lang', x: setX, y: setY + r * (gapMult * 2), r: r * 0.7, color:'#4488FF', visible: gameState.settingsOpen };
+        // Reset: 3 шага
+        const resetBtn = { id:'reset', x: setX, y: setY + r * (gapMult * 3), r: r * 0.7, color:'#FF3333', visible: gameState.settingsOpen };
+
+        // ПРАВАЯ КОЛОНКА (ДЕЙСТВИЯ)
+        const actionX = w - (isMobileLandscape ? 50 : 70); // Чуть ближе к краю на мобилках
+        const centerY = h / 2;
+
+        // Кнопка рекламы (выше центра)
+        const adBtn = { id:'ad', x: actionX, y: centerY - (isMobileLandscape ? 50 : 60), r: r, color:'#FFD700', visible: true };
+
+        // Кнопка покупки (ниже центра)
+        const buyBtn = { id:'buy', x: actionX, y: centerY + (isMobileLandscape ? 50 : 60), r: r * 1.1, color:'#4CAF50', visible: true };
+
         renderState.uiButtons = [settingsBtn, muteBtn, langBtn, resetBtn, adBtn, buyBtn];
     }
 
