@@ -15,13 +15,9 @@
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
-            -khtml-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
             touch-action: none;
             -webkit-user-drag: none;
-            user-drag: none;
         }
 
         body, html {
@@ -40,9 +36,6 @@
             width: 100%;
             height: 100%;
             touch-action: none;
-            -webkit-user-select: none !important;
-            user-select: none !important;
-            -webkit-touch-callout: none !important;
         }
 
         /* --- UI OVERLAYS --- */
@@ -104,7 +97,7 @@
             display: flex;
         }
 
-        /* Popup Styles - Responsive using CSS Clamp */
+        /* Popup Styles */
         .popup-box {
             position: relative;
             width: clamp(280px, 80vw, 400px);
@@ -196,7 +189,7 @@
         .action-btn:active { box-shadow: 0 2px 0 #900; transform: translateY(2px); }
         .action-btn:disabled { background: #555; border-color: #333; box-shadow: none; cursor: not-allowed; opacity: 0.5; transform: none; }
 
-        /* Media Query for Landscape Mobile / Short Screens */
+        /* Media Query for Landscape Mobile */
         @media (max-height: 500px) {
             .setup-arena { height: 65vh !important; margin-bottom: 5px; }
             .unit-card { width: 60px !important; height: 80px !important; margin: 2px !important; }
@@ -399,7 +392,6 @@
             if (Date.now() - this.lastAdTime > 180000) this.showInterstitial();
         }
         showInterstitial(cb) {
-            // FIX: Added check for this.ysdk to prevent null pointer exception if called before init
             if (!this.ysdk || (Date.now() - this.sessionStart < 90000 && !this.isMock)) { if(cb) cb(); return; }
             if (this.isMock) { if(cb) cb(); return; }
             
@@ -413,7 +405,6 @@
             });
         }
         showRewarded(onReward) {
-            // FIX: Added check for this.ysdk
             if (!this.ysdk || this.isMock) { onReward(); return; }
             this.gameplayStop();
             this.ysdk.adv.showRewardedVideo({
@@ -440,7 +431,7 @@
         HP_BASE: 80, HP_MULT: 1.4,
         DMG_BASE: 12, DMG_MULT: 1.35,
         BATTLE_INTERVAL_MIN: 45, SQUAD_LIMIT: 5,
-        gridColor: 'rgba(0,0,0,0.3)' // Semi-transparent for Roblox style slots
+        gridColor: 'rgba(0,0,0,0.3)'
     };
     
     const layout = { isPortrait: false, scale: 1, gridX: 0, gridY: 0, fontSize: 16 };
@@ -711,49 +702,37 @@
             }
         }
     }
- 
+
     function updateUIButtons(w, h) {
         const minDim = Math.min(w, h);
         
         // ОПРЕДЕЛЯЕМ МОБИЛЬНЫЙ ЛАНДШАФТ (горизонтально)
-        // Если ширина больше высоты и высота меньше 600px — это скорее всего телефон боком
         const isMobileLandscape = w > h && h < 600;
 
         // 1. НАСТРОЙКА РАЗМЕРА (Радиус)
-        // Для мобилок делаем кнопки компактнее (0.05 вместо 0.06 и мин. 28 вместо 35)
-        let r = isMobileLandscape ? Math.max(28, minDim * 0.05) : Math.max(35, minDim * 0.06);
-        if (r > 50) r = 50; // Ограничение макс размера
+        // Для мобилок делаем кнопки компактнее (макс 28px, для PC 35px)
+        let r = isMobileLandscape ? Math.max(25, minDim * 0.05) : Math.max(35, minDim * 0.06);
+        if (r > 50) r = 50; 
 
         // 2. НАСТРОЙКА ПОЗИЦИИ (Верхний левый угол)
-        // На мобилках прижимаем ближе к углу (35px вместо 50px)
+        // На мобилках прижимаем ближе к углу
         const setX = isMobileLandscape ? 35 : 50; 
         const setY = isMobileLandscape ? 35 : 50;
         
         // 3. НАСТРОЙКА ОТСТУПОВ (Плотность списка)
-        // Если мобилка — множитель отступа 1.8, иначе 2.2 (как было)
-        const gapMult = isMobileLandscape ? 1.8 : 2.2;
+        // Если мобилка — множитель отступа 1.7 (очень плотно), иначе 2.2
+        const gapMult = isMobileLandscape ? 1.7 : 2.2;
 
-        // ЛЕВАЯ КОЛОНКА (НАСТРОЙКИ)
         const settingsBtn = { id:'settings', x: setX, y: setY, r: r * 0.8, color:'#777', visible: true };
         
-        // Кнопки выстраиваем относительно setY с новым множителем gapMult
-        // Mute: 1 шаг
         const muteBtn = { id:'mute', x: setX, y: setY + r * gapMult, r: r * 0.7, color:'#444', visible: gameState.settingsOpen };
-        // Lang: 2 шага
         const langBtn = { id:'lang', x: setX, y: setY + r * (gapMult * 2), r: r * 0.7, color:'#4488FF', visible: gameState.settingsOpen };
-        // Reset: 3 шага
         const resetBtn = { id:'reset', x: setX, y: setY + r * (gapMult * 3), r: r * 0.7, color:'#FF3333', visible: gameState.settingsOpen };
 
-        // ПРАВАЯ КОЛОНКА (ДЕЙСТВИЯ)
-        const actionX = w - (isMobileLandscape ? 50 : 70); // Чуть ближе к краю на мобилках
+        const actionX = w - (isMobileLandscape ? 50 : 70); 
         const centerY = h / 2;
-
-        // Кнопка рекламы (выше центра)
         const adBtn = { id:'ad', x: actionX, y: centerY - (isMobileLandscape ? 50 : 60), r: r, color:'#FFD700', visible: true };
-
-        // Кнопка покупки (ниже центра)
         const buyBtn = { id:'buy', x: actionX, y: centerY + (isMobileLandscape ? 50 : 60), r: r * 1.1, color:'#4CAF50', visible: true };
-
         renderState.uiButtons = [settingsBtn, muteBtn, langBtn, resetBtn, adBtn, buyBtn];
     }
 
@@ -815,40 +794,31 @@
     function renderRobloxBackground(w, h) {
         // Sky
         const grad = ctx.createLinearGradient(0, 0, 0, h);
-        grad.addColorStop(0, '#75CFFF'); // Roblox Sky Blue
+        grad.addColorStop(0, '#75CFFF'); 
         grad.addColorStop(1, '#B0E2FF');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, w, h);
         
         // Baseplate (Floor)
-        const plateColor = '#A3A2A5'; // Classic Grey Baseplate
-        const studColor = '#909090';  // Darker stud
+        const plateColor = '#A3A2A5'; 
+        const studColor = '#909090';  
         
-        // Draw perspective grid or top down studs
-        // Since this is a 2D UI merge game, let's draw a nice tiling stud pattern
-        
-        const studSize = 10;
-        const studSpacing = 30;
-        
-        // Optimize: Draw a base rectangle for the "floor" area
-        // We'll treat the whole screen as a baseplate for the merge area
         ctx.fillStyle = plateColor;
         ctx.fillRect(0, 0, w, h);
         
         // Draw studs pattern
+        const studSize = 10;
+        const studSpacing = 30;
+        
         ctx.fillStyle = studColor;
-        // Limit stud drawing to screen size to save performance
-        // Create a pattern only once would be better, but simple loop is okay for now if optimized
         const cols = Math.ceil(w / studSpacing);
         const rows = Math.ceil(h / studSpacing);
         
-        // Only draw visible studs (simple loop)
         for(let r=0; r<rows; r++) {
             for(let c=0; c<cols; c++) {
                 const sx = c * studSpacing + (studSpacing/2);
                 const sy = r * studSpacing + (studSpacing/2);
                 
-                // Draw stud (circle) with slight 3D effect
                 ctx.beginPath();
                 ctx.arc(sx, sy, studSize/2, 0, Math.PI*2);
                 ctx.fill();
@@ -896,15 +866,12 @@
             // MERGE MODE - NEW STYLE
             renderRobloxBackground(w, h);
             
-            // Draw Slots - Roblox Inventory Style
+            // Draw Slots
             renderState.slots.forEach(s => { 
-                // Dark semi-transparent background
                 ctx.fillStyle = 'rgba(0,0,0,0.4)'; 
                 ctx.beginPath(); 
                 ctx.roundRect(s.x, s.y, s.width, s.height, 10); 
                 ctx.fill(); 
-                
-                // White outline (classic Roblox UI stroke)
                 ctx.strokeStyle = 'rgba(255,255,255,0.3)'; 
                 ctx.lineWidth = 2; 
                 ctx.stroke(); 
@@ -971,45 +938,19 @@
                     drawStrokedText(gameState.lang.toUpperCase(), btn.x, btn.y+2, btn.r * 0.7, '#FFF');
                 }
                 else if(btn.id === 'reset') {
-                    // Фон кнопки
                     ctx.fillStyle = '#FF3333'; 
                     ctx.beginPath(); ctx.arc(btn.x, btn.y, btn.r, 0, Math.PI*2); ctx.fill();
                     ctx.strokeStyle = '#FFF'; ctx.lineWidth = 1; ctx.stroke();
                     
-                    // Иконка: Аккуратная круговая стрелка
                     ctx.save();
                     ctx.translate(btn.x, btn.y);
-                    
-                    const iconR = btn.r * 0.5; // Радиус самой стрелки
-                    ctx.strokeStyle = '#FFF';
-                    ctx.fillStyle = '#FFF';
-                    ctx.lineWidth = Math.max(2, btn.r * 0.12);
-                    ctx.lineCap = 'round';
-                    
-                    // Рисуем дугу (почти полный круг с разрывом сверху)
-                    ctx.beginPath();
-                    // Начинаем чуть правее верха (-80 градусов) и идем по часовой почти до верха
-                    ctx.arc(0, 0, iconR, -Math.PI/2 + 0.6, -Math.PI/2 - 0.2, false);
-                    ctx.stroke();
-                    
-                    // Рисуем наконечник стрелки на конце дуги
-                    const tipAngle = -Math.PI/2 - 0.2; // Угол конца дуги
-                    const tipX = Math.cos(tipAngle) * iconR;
-                    const tipY = Math.sin(tipAngle) * iconR;
-                    
-                    ctx.translate(tipX, tipY);
-                    ctx.rotate(tipAngle); // Поворачиваем систему координат по касательной
-                    
+                    const iconR = btn.r * 0.5;
+                    ctx.strokeStyle = '#FFF'; ctx.fillStyle = '#FFF'; ctx.lineWidth = Math.max(2, btn.r * 0.12); ctx.lineCap = 'round';
+                    ctx.beginPath(); ctx.arc(0, 0, iconR, -Math.PI/2 + 0.6, -Math.PI/2 - 0.2, false); ctx.stroke();
+                    const tipAngle = -Math.PI/2 - 0.2; const tipX = Math.cos(tipAngle) * iconR; const tipY = Math.sin(tipAngle) * iconR;
+                    ctx.translate(tipX, tipY); ctx.rotate(tipAngle); 
                     const headSize = btn.r * 0.35;
-                    ctx.beginPath();
-                    // Треугольник стрелки
-                    // 0,0 - это центр, где линия соединяется с треугольником
-                    ctx.moveTo(headSize * 0.2, 0);       // "Носик" чуть вперед по ходу движения
-                    ctx.lineTo(-headSize * 0.4, -headSize * 0.4); // Левое крыло
-                    ctx.lineTo(-headSize * 0.4, headSize * 0.4);  // Правое крыло
-                    ctx.closePath();
-                    ctx.fill();
-                    
+                    ctx.beginPath(); ctx.moveTo(headSize * 0.2, 0); ctx.lineTo(-headSize * 0.4, -headSize * 0.4); ctx.lineTo(-headSize * 0.4, headSize * 0.4); ctx.closePath(); ctx.fill();
                     ctx.restore();
                 }
             });
@@ -1218,7 +1159,6 @@
         loadGame(); 
         if(!gameState.units.length) gameState.units.push({id:Date.now(),level:1,slotIndex:0,x:0,y:0,isDragging:false,animScale:1});
         
-        // Запускаем инициализацию SDK в фоне, чтобы не блокировать игру
         yandexManager.init().then(() => {
             if (yandexManager.ysdk) { 
                 yandexManager.notifyGameReady(); 
@@ -1230,7 +1170,6 @@
         resize(); 
         updateDomTexts();
         
-        // Убираем загрузочный экран сразу
         document.getElementById('loadingOverlay').style.display = 'none';
         
         requestAnimationFrame(gameLoop);
